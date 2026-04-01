@@ -36,6 +36,8 @@ public sealed class GameSnapshot
 
     public string? CurrentOrderName { get; init; }
 
+    public bool IsCurrentOrderAccepted { get; init; }
+
     public IReadOnlyList<StationType> RequiredStations { get; init; } = Array.Empty<StationType>();
 
     public IReadOnlyList<StationType> CompletedStations { get; init; } = Array.Empty<StationType>();

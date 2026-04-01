@@ -277,11 +277,12 @@ public sealed class GameForm : Form
         g.Clear(Color.FromArgb(11, 13, 19));
 
         var snapshot = controller.Snapshot;
+        var objective = GetObjective(snapshot);
         var viewport = GetViewportRect();
         var hudRect = GetHudRect(viewport);
 
-        DrawWorld(g, snapshot, viewport);
-        DrawHud(g, snapshot, hudRect);
+        DrawWorld(g, snapshot, viewport, objective.Station);
+        DrawHud(g, snapshot, hudRect, objective.Text);
 
         using (var borderPen = new Pen(Color.FromArgb(85, 111, 149), 2f))
         {
@@ -294,7 +295,7 @@ public sealed class GameForm : Form
         }
     }
 
-    private void DrawWorld(Graphics g, GameSnapshot snapshot, Rectangle viewport)
+    private void DrawWorld(Graphics g, GameSnapshot snapshot, Rectangle viewport, StationType? objectiveStation)
     {
         var state = g.Save();
         g.SetClip(viewport);
@@ -359,10 +360,18 @@ public sealed class GameForm : Form
                 using var highlightPen = new Pen(Color.FromArgb(220, 253, 240, 174), 2f);
                 g.DrawEllipse(highlightPen, rect.X - 4, rect.Y - 4, rect.Width + 8, rect.Height + 8);
             }
+
+            if (objectiveStation is not null && station.Type == objectiveStation)
+            {
+                var pulse = 0.55f + 0.45f * MathF.Sin(uiClock * 4.2f);
+                using var objectivePen = new Pen(Color.FromArgb((int)(220 * pulse), 128, 238, 184), 2.2f);
+                g.DrawEllipse(objectivePen, rect.X - 8, rect.Y - 8, rect.Width + 16, rect.Height + 16);
+            }
         }
 
         DrawPulses(g);
         DrawPlayer(g, snapshot);
+        DrawObjectiveArrow(g, snapshot, viewport, objectiveStation);
 
         g.Restore(state);
     }
@@ -400,7 +409,79 @@ public sealed class GameForm : Form
         g.FillRectangle(skinBrush, head);
     }
 
-    private void DrawHud(Graphics g, GameSnapshot snapshot, Rectangle hudRect)
+    private (StationType? Station, string Text) GetObjective(GameSnapshot snapshot)
+    {
+        if (!snapshot.IsShiftRunning)
+        {
+            return (null, "Нажми Enter, чтобы начать");
+        }
+
+        if (snapshot.CurrentOrderName is null)
+        {
+            return (null, "Ожидание клиента");
+        }
+
+        if (!snapshot.IsCurrentOrderAccepted)
+        {
+            return (StationType.OrderDesk, "Прими заказ у стойки");
+        }
+
+        var completed = snapshot.CompletedStations.ToHashSet();
+        var nextStation = snapshot.RequiredStations.FirstOrDefault(station => !completed.Contains(station));
+        if (nextStation != default)
+        {
+            return (nextStation, $"Выполни этап: {RecipeBook.GetStationName(nextStation)}");
+        }
+
+        return (StationType.ServingCounter, "Неси заказ на выдачу");
+    }
+
+    private void DrawObjectiveArrow(Graphics g, GameSnapshot snapshot, Rectangle viewport, StationType? objectiveStation)
+    {
+        if (objectiveStation is null)
+        {
+            return;
+        }
+
+        var station = snapshot.Stations.FirstOrDefault(x => x.Type == objectiveStation);
+        if (station is null)
+        {
+            return;
+        }
+
+        var worldTarget = new PointF((station.Position.X + 0.5f) * CellSize, (station.Position.Y + 0.5f) * CellSize);
+        var screenTarget = new PointF(
+            viewport.Left + worldTarget.X - camera.Position.X,
+            viewport.Top + worldTarget.Y - camera.Position.Y);
+
+        var margin = 26f;
+        if (screenTarget.X > viewport.Left + margin &&
+            screenTarget.X < viewport.Right - margin &&
+            screenTarget.Y > viewport.Top + margin &&
+            screenTarget.Y < viewport.Bottom - margin)
+        {
+            return;
+        }
+
+        var clamped = new PointF(
+            Math.Clamp(screenTarget.X, viewport.Left + margin, viewport.Right - margin),
+            Math.Clamp(screenTarget.Y, viewport.Top + margin, viewport.Bottom - margin));
+
+        var angle = MathF.Atan2(screenTarget.Y - clamped.Y, screenTarget.X - clamped.X);
+        var triangle = new[]
+        {
+            new PointF(clamped.X + MathF.Cos(angle) * 14f, clamped.Y + MathF.Sin(angle) * 14f),
+            new PointF(clamped.X + MathF.Cos(angle + 2.4f) * 10f, clamped.Y + MathF.Sin(angle + 2.4f) * 10f),
+            new PointF(clamped.X + MathF.Cos(angle - 2.4f) * 10f, clamped.Y + MathF.Sin(angle - 2.4f) * 10f)
+        };
+
+        using var fill = new SolidBrush(Color.FromArgb(228, 255, 212, 132));
+        using var border = new Pen(Color.FromArgb(190, 36, 42, 51), 1.4f);
+        g.FillPolygon(fill, triangle);
+        g.DrawPolygon(border, triangle);
+    }
+
+    private void DrawHud(Graphics g, GameSnapshot snapshot, Rectangle hudRect, string objectiveText)
     {
         using var panelBrush = new LinearGradientBrush(hudRect, Color.FromArgb(23, 29, 41), Color.FromArgb(15, 19, 28), 90f);
         g.FillRectangle(panelBrush, hudRect);
@@ -432,7 +513,12 @@ public sealed class GameForm : Form
         DrawBar(g, new RectangleF(x, y, hudRect.Width - 28, 10), snapshot.Rating / 100f, Color.FromArgb(135, 229, 171));
         y += 20;
         g.DrawString($"Ошибки: {snapshot.Mistakes}  Выполнено: {snapshot.ServedOrders}", textFont, textBrush, x, y);
-        y += 28;
+        y += 24;
+
+        g.DrawString("Цель:", textFont, accentBrush, x, y);
+        y += 18;
+        g.DrawString(Wrap(objectiveText, 34), textFont, textBrush, x, y);
+        y += 24;
 
         g.DrawString("Текущий заказ:", textFont, accentBrush, x, y);
         y += 18;

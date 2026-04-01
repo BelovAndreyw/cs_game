@@ -171,6 +171,7 @@ public sealed class GameWorld
             CustomerPatienceSecondsLeft = customerPatienceSecondsLeft,
             StatusMessage = statusMessage,
             CurrentOrderName = currentOrder is null ? null : RecipeBook.GetMenuItemName(currentOrder.Item),
+            IsCurrentOrderAccepted = currentProgress is not null,
             RequiredStations = requiredStations,
             CompletedStations = completedStations,
             TutorialHints = BuildTutorialHints(),
