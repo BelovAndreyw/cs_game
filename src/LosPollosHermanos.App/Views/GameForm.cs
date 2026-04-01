@@ -12,7 +12,8 @@ public sealed class GameForm : Form
     private const int CellSize = 48;
     private const int ViewPadding = 18;
     private const int HudWidth = 340;
-    private const float MoveStepMs = 90f;
+    private const float MoveRepeatStepMs = 150f;
+    private const float MoveInitialRepeatDelayMs = 220f;
     private const float WorldTickMs = 1000f;
 
     private readonly GameController controller;
@@ -28,6 +29,8 @@ public sealed class GameForm : Form
     private float uiClock;
     private float overlayOpacity = 0.88f;
     private bool pendingInteractionAnimation;
+    private bool queuedSingleStepMove;
+    private Direction? queuedSingleStepDirection;
     private Direction? preferredDirection;
     private PlayerAnimationFrame playerFrame = new(PlayerAnimationMode.Idle, 0, Direction.Down);
 
@@ -85,6 +88,14 @@ public sealed class GameForm : Form
         var before = controller.Snapshot;
         var movedThisFrame = ProcessMovement(before, elapsedMs, out var direction);
 
+        if (queuedSingleStepMove)
+        {
+            movedThisFrame = true;
+            direction ??= queuedSingleStepDirection;
+            queuedSingleStepMove = false;
+            queuedSingleStepDirection = null;
+        }
+
         if (before.IsShiftRunning)
         {
             worldTickAccumulatorMs += elapsedMs;
@@ -124,15 +135,16 @@ public sealed class GameForm : Form
         moveAccumulatorMs += elapsedMs;
         var moved = false;
 
-        while (moveAccumulatorMs >= MoveStepMs)
+        while (moveAccumulatorMs >= MoveRepeatStepMs)
         {
             if (!TryGetMoveDirection(out var nextDirection))
             {
+                moveAccumulatorMs = MoveRepeatStepMs;
                 break;
             }
 
             controller.Move(nextDirection);
-            moveAccumulatorMs -= MoveStepMs;
+            moveAccumulatorMs -= MoveRepeatStepMs;
             direction = nextDirection;
             moved = true;
         }
@@ -179,12 +191,22 @@ public sealed class GameForm : Form
 
     private void HandleKeyDown(object? sender, KeyEventArgs e)
     {
+        var snapshot = controller.Snapshot;
+
         if (e.KeyCode is Keys.W or Keys.A or Keys.S or Keys.D or Keys.Up or Keys.Down or Keys.Left or Keys.Right)
         {
-            pressedKeys.Add(e.KeyCode);
+            var isNewPress = pressedKeys.Add(e.KeyCode);
+            if (isNewPress &&
+                snapshot.IsShiftRunning &&
+                TryMapKeyToDirection(e.KeyCode, out var direction))
+            {
+                preferredDirection = direction;
+                controller.Move(direction);
+                queuedSingleStepMove = true;
+                queuedSingleStepDirection = direction;
+                moveAccumulatorMs = -MoveInitialRepeatDelayMs;
+            }
         }
-
-        var snapshot = controller.Snapshot;
 
         if (!snapshot.IsShiftStarted && !snapshot.IsGameOver)
         {
@@ -232,10 +254,26 @@ public sealed class GameForm : Form
         moveAccumulatorMs = 0f;
         worldTickAccumulatorMs = 0f;
         pendingInteractionAnimation = false;
+        queuedSingleStepMove = false;
+        queuedSingleStepDirection = null;
         overlayOpacity = 0f;
         pulses.Clear();
         preferredDirection = null;
         pressedKeys.Clear();
+    }
+
+    private static bool TryMapKeyToDirection(Keys key, out Direction direction)
+    {
+        direction = key switch
+        {
+            Keys.W or Keys.Up => Direction.Up,
+            Keys.S or Keys.Down => Direction.Down,
+            Keys.A or Keys.Left => Direction.Left,
+            Keys.D or Keys.Right => Direction.Right,
+            _ => default
+        };
+
+        return key is Keys.W or Keys.A or Keys.S or Keys.D or Keys.Up or Keys.Down or Keys.Left or Keys.Right;
     }
 
     private void UpdatePulses(float elapsedSeconds)
