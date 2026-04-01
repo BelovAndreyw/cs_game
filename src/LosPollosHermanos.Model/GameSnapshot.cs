@@ -28,6 +28,8 @@ public sealed class GameSnapshot
 
     public int TimeRemainingSeconds { get; init; }
 
+    public int ShiftDurationSeconds { get; init; }
+
     public int CustomerPatienceSecondsLeft { get; init; }
 
     public string StatusMessage { get; init; } = string.Empty;

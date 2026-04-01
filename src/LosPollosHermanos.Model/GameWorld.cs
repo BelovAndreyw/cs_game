@@ -2,7 +2,7 @@
 
 public sealed class GameWorld
 {
-    private static readonly GridPosition PlayerStartPosition = new(1, 8);
+    private static readonly GridPosition PlayerStartPosition = new(5, 17);
 
     private readonly ShiftSettings settings;
     private readonly IReadOnlyList<Station> stations;
@@ -167,6 +167,7 @@ public sealed class GameWorld
             Mistakes = Mistakes,
             ServedOrders = ServedOrders,
             TimeRemainingSeconds = TimeRemainingSeconds,
+            ShiftDurationSeconds = settings.ShiftDurationSeconds,
             CustomerPatienceSecondsLeft = customerPatienceSecondsLeft,
             StatusMessage = statusMessage,
             CurrentOrderName = currentOrder is null ? null : RecipeBook.GetMenuItemName(currentOrder.Item),
@@ -344,12 +345,12 @@ public sealed class GameWorld
     {
         return new[]
         {
-            new Station(StationType.OrderDesk, RecipeBook.GetStationName(StationType.OrderDesk), new GridPosition(1, 1)),
-            new Station(StationType.Grill, RecipeBook.GetStationName(StationType.Grill), new GridPosition(4, 1)),
-            new Station(StationType.Assembly, RecipeBook.GetStationName(StationType.Assembly), new GridPosition(7, 1)),
-            new Station(StationType.Fryer, RecipeBook.GetStationName(StationType.Fryer), new GridPosition(10, 1)),
-            new Station(StationType.Drinks, RecipeBook.GetStationName(StationType.Drinks), new GridPosition(11, 4)),
-            new Station(StationType.ServingCounter, RecipeBook.GetStationName(StationType.ServingCounter), new GridPosition(11, 8))
+            new Station(StationType.OrderDesk, RecipeBook.GetStationName(StationType.OrderDesk), new GridPosition(4, 4)),
+            new Station(StationType.Grill, RecipeBook.GetStationName(StationType.Grill), new GridPosition(11, 5)),
+            new Station(StationType.Assembly, RecipeBook.GetStationName(StationType.Assembly), new GridPosition(17, 9)),
+            new Station(StationType.Fryer, RecipeBook.GetStationName(StationType.Fryer), new GridPosition(24, 6)),
+            new Station(StationType.Drinks, RecipeBook.GetStationName(StationType.Drinks), new GridPosition(27, 12)),
+            new Station(StationType.ServingCounter, RecipeBook.GetStationName(StationType.ServingCounter), new GridPosition(30, 17))
         };
     }
 }
