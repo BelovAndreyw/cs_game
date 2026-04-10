@@ -30,10 +30,10 @@ public sealed class GameWorld
 
     private bool isTutorialActive;
     private int tutorialSecondsLeft;
-    private string chefMessage = "Press Enter to start your shift.";
+    private string chefMessage = "Нажмите Enter, чтобы начать смену.";
     private StationType? tutorialTargetStation;
     private string? currentCustomerSpeech;
-    private string statusMessage = "Press Enter to start your shift.";
+    private string statusMessage = "Нажмите Enter, чтобы начать смену.";
 
     private StationType? interactionStation;
     private StationInteractionMode interactionMode = StationInteractionMode.None;
@@ -111,7 +111,7 @@ public sealed class GameWorld
         }
         else
         {
-            statusMessage = "Chef: follow quick tutorial before customers arrive.";
+            statusMessage = "Шеф: пройдите короткое обучение перед началом потока.";
         }
     }
 
@@ -135,7 +135,7 @@ public sealed class GameWorld
             if (station is null || station.Type != interactionStation.Value)
             {
                 ResetInteractionState(clearHint: false);
-                interactionHint = "Interaction canceled: move back to station.";
+                interactionHint = "Действие отменено: вернитесь к станции.";
             }
         }
     }
@@ -150,7 +150,7 @@ public sealed class GameWorld
         var station = GetStationAtPlayer();
         if (station is null)
         {
-            statusMessage = "No station here.";
+            statusMessage = "Здесь нет рабочей станции.";
             return;
         }
 
@@ -167,7 +167,7 @@ public sealed class GameWorld
         var station = GetStationAtPlayer();
         if (station is null)
         {
-            interactionHint = "Move to station first.";
+            interactionHint = "Сначала подойдите к станции.";
             return;
         }
 
@@ -182,7 +182,7 @@ public sealed class GameWorld
             }
 
             holdInteractionPressed = true;
-            interactionHint = $"Hold E at {station.Name}: {holdProgressSeconds:0.0}/{rule.HoldDurationSeconds:0.0}s";
+            interactionHint = $"Удерживайте E на станции \"{station.Name}\": {holdProgressSeconds:0.0}/{rule.HoldDurationSeconds:0.0}с";
             return;
         }
 
@@ -213,7 +213,7 @@ public sealed class GameWorld
             if (stationAtPlayer is null || stationAtPlayer.Type != interactionStation.Value)
             {
                 ResetInteractionState(clearHint: false);
-                interactionHint = "Interaction canceled: move back to station.";
+                interactionHint = "Действие отменено: вернитесь к станции.";
             }
         }
 
@@ -232,7 +232,7 @@ public sealed class GameWorld
         if (interactionMode == StationInteractionMode.Hold && holdInteractionPressed)
         {
             holdProgressSeconds += dt;
-            interactionHint = $"Hold E at {station.Name}: {holdProgressSeconds:0.0}/{rule.HoldDurationSeconds:0.0}s";
+            interactionHint = $"Удерживайте E на станции \"{station.Name}\": {holdProgressSeconds:0.0}/{rule.HoldDurationSeconds:0.0}с";
             if (holdProgressSeconds >= rule.HoldDurationSeconds)
             {
                 ExecuteStationAction(station);
@@ -245,7 +245,7 @@ public sealed class GameWorld
             if (rapidTapWindowSeconds <= 0f)
             {
                 rapidTapCount = 0;
-                interactionHint = "Tap chain expired. Start again.";
+                interactionHint = "Серия нажатий прервалась. Начните заново.";
             }
         }
     }
@@ -270,8 +270,8 @@ public sealed class GameWorld
             {
                 isTutorialActive = false;
                 tutorialTargetStation = null;
-                chefMessage = "Service starts now. Keep your station sharp.";
-                statusMessage = "Tutorial complete. First customer is waiting.";
+                chefMessage = "Смена началась. Работайте быстро и точно.";
+                statusMessage = "Обучение завершено. Первый клиент уже ждет.";
                 SpawnNextOrder();
             }
         }
@@ -285,7 +285,7 @@ public sealed class GameWorld
                 if (customerPatienceSecondsLeft <= 0)
                 {
                     var complaint = currentCustomer is null
-                        ? "Customer left."
+                        ? "Клиент ушел."
                         : $"{currentCustomer.Name}: {PickLine(currentCustomer.TimeoutLines)}";
                     ApplyMistake(settings.TimeoutPenalty, complaint);
                     if (!isGameOver)
@@ -392,7 +392,7 @@ public sealed class GameWorld
 
         rapidTapCount++;
         rapidTapWindowSeconds = rule.RapidTapWindowSeconds;
-        interactionHint = $"Tap E quickly at {station.Name}: {rapidTapCount}/{rule.RapidTapTarget}";
+        interactionHint = $"Быстро нажимайте E на \"{station.Name}\": {rapidTapCount}/{rule.RapidTapTarget}";
 
         if (rapidTapCount >= rule.RapidTapTarget)
         {
@@ -421,38 +421,38 @@ public sealed class GameWorld
     {
         if (isTutorialActive)
         {
-            statusMessage = "Chef: good. Tutorial still running, keep moving.";
+            statusMessage = "Шеф: отлично, обучение еще идет, двигайтесь дальше.";
             return;
         }
 
         if (currentOrder is null)
         {
-            statusMessage = "No active customer now.";
+            statusMessage = "Сейчас нет активного клиента.";
             return;
         }
 
         if (currentProgress is not null)
         {
-            statusMessage = "Order already accepted. Continue cooking.";
+            statusMessage = "Заказ уже принят. Продолжайте готовить.";
             return;
         }
 
         currentProgress = new OrderProgress(currentOrder);
         var required = string.Join(", ", currentProgress.RequiredStations.Select(RecipeBook.GetStationName));
-        statusMessage = $"Order accepted: {RecipeBook.GetMenuItemName(currentOrder.Item)} ({required}).";
+        statusMessage = $"Заказ принят: {RecipeBook.GetMenuItemName(currentOrder.Item)} ({required}).";
     }
 
     private void WorkAtStation(StationType stationType, string stationName)
     {
         if (isTutorialActive)
         {
-            statusMessage = $"Chef: station {stationName} checked.";
+            statusMessage = $"Шеф: станция \"{stationName}\" проверена.";
             return;
         }
 
         if (currentProgress is null)
         {
-            statusMessage = "Accept order at desk first.";
+            statusMessage = "Сначала примите заказ на стойке.";
             return;
         }
 
@@ -460,21 +460,21 @@ public sealed class GameWorld
         switch (result)
         {
             case StationWorkResult.NotRequired:
-                statusMessage = $"{stationName} is not required for this order.";
+                statusMessage = $"Станция \"{stationName}\" не нужна для текущего заказа.";
                 return;
             case StationWorkResult.AlreadyCompleted:
-                statusMessage = $"{stationName} is already completed.";
+                statusMessage = $"Этап на станции \"{stationName}\" уже выполнен.";
                 return;
             case StationWorkResult.Completed:
-                statusMessage = $"Stage completed: {stationName}.";
+                statusMessage = $"Этап выполнен: {stationName}.";
                 if (currentProgress.IsReady)
                 {
-                    statusMessage += " Order is ready for serving counter.";
+                    statusMessage += " Заказ готов, несите на выдачу.";
                 }
 
                 return;
             default:
-                statusMessage = "Unknown station result.";
+                statusMessage = "Неизвестный результат действия на станции.";
                 return;
         }
     }
@@ -483,19 +483,19 @@ public sealed class GameWorld
     {
         if (isTutorialActive)
         {
-            statusMessage = "Chef: serving counter is where finished orders go.";
+            statusMessage = "Шеф: на выдаче отдают готовые заказы.";
             return;
         }
 
         if (currentOrder is null)
         {
-            statusMessage = "No order to serve.";
+            statusMessage = "Нет заказа для выдачи.";
             return;
         }
 
         if (currentProgress is null)
         {
-            statusMessage = "Order is not accepted yet.";
+            statusMessage = "Заказ еще не принят на стойке.";
             return;
         }
 
@@ -515,7 +515,7 @@ public sealed class GameWorld
             Rating = Math.Min(100, Rating + settings.SuccessfulServeRatingBonus);
 
             var reaction = currentCustomer is null
-                ? "Order served successfully."
+                ? "Заказ выдан правильно."
                 : $"{currentCustomer.Name}: {PickLine(currentCustomer.SuccessLines)}";
             statusMessage = reaction;
 
@@ -524,7 +524,7 @@ public sealed class GameWorld
         }
 
         var complaint = currentCustomer is null
-            ? "Incomplete order served."
+            ? "Выдан неполный заказ."
             : $"{currentCustomer.Name}: {PickLine(currentCustomer.FailureLines)}";
         ApplyMistake(settings.WrongServePenalty, complaint);
         if (!isGameOver)
@@ -612,14 +612,14 @@ public sealed class GameWorld
         Mistakes++;
         var penalty = ScalePenaltyByDifficulty(baseRatingPenalty);
         Rating = Math.Max(0, Rating - penalty);
-        statusMessage = $"{reason} Rating -{penalty}.";
+        statusMessage = $"{reason} Рейтинг -{penalty}.";
 
         if (Mistakes >= settings.MaxMistakes || Rating < settings.MinRatingToKeepJob)
         {
             isShiftRunning = false;
             isGameOver = true;
             outcome = ShiftOutcome.Fired;
-            statusMessage = "Too many mistakes. You are fired.";
+            statusMessage = "Слишком много ошибок. Вас уволили.";
         }
     }
 
@@ -652,7 +652,7 @@ public sealed class GameWorld
         isShiftRunning = false;
         isGameOver = true;
         outcome = ShiftOutcome.Victory;
-        statusMessage = $"Shift finished. Served orders: {ServedOrders}.";
+        statusMessage = $"Смена завершена. Выполнено заказов: {ServedOrders}.";
     }
 
     private Station? GetStationAtPlayer()
@@ -670,26 +670,26 @@ public sealed class GameWorld
 
         if (tutorialSecondsLeft > 22)
         {
-            chefMessage = "Chef: move to order desk and get comfortable.";
+            chefMessage = "Шеф: подойдите к стойке заказа и освойтесь.";
             tutorialTargetStation = StationType.OrderDesk;
             return;
         }
 
         if (tutorialSecondsLeft > 14)
         {
-            chefMessage = "Chef: each station needs hold or rapid taps on E.";
+            chefMessage = "Шеф: на станциях нужно удерживать E или быстро нажимать E.";
             tutorialTargetStation = StationType.Grill;
             return;
         }
 
         if (tutorialSecondsLeft > 7)
         {
-            chefMessage = "Chef: assembly is fast tapping, keep rhythm.";
+            chefMessage = "Шеф: на сборке важен ритм быстрых нажатий.";
             tutorialTargetStation = StationType.Assembly;
             return;
         }
 
-        chefMessage = "Chef: final check at serving counter. Service starts soon.";
+        chefMessage = "Шеф: финальная проверка на выдаче. Скоро пойдет поток.";
         tutorialTargetStation = StationType.ServingCounter;
     }
 
@@ -699,9 +699,9 @@ public sealed class GameWorld
         {
             return new[]
             {
-                "WASD/arrows: move",
-                "E: hold or rapid tap to interact",
-                "Enter: start shift"
+                "WASD/стрелки: движение",
+                "E: удержание или серия нажатий для действия",
+                "Enter: начать смену"
             };
         }
 
@@ -709,9 +709,9 @@ public sealed class GameWorld
         {
             return new[]
             {
-                "Chef tutorial in progress",
-                $"Time left: {tutorialSecondsLeft}s",
-                "Follow highlighted station"
+                "Идет обучение от шефа",
+                $"Осталось: {tutorialSecondsLeft}с",
+                "Следуйте к подсвеченной станции"
             };
         }
 
@@ -724,9 +724,9 @@ public sealed class GameWorld
         {
             return new[]
             {
-                "1) Accept order at desk",
-                "2) Complete required stations",
-                "3) Serve at counter before patience runs out"
+                "1) Принять заказ на стойке",
+                "2) Выполнить нужные этапы на станциях",
+                "3) Выдать заказ до окончания терпения клиента"
             };
         }
 
@@ -759,7 +759,7 @@ public sealed class GameWorld
     {
         var npcs = new List<NpcSnapshot>
         {
-            new("Chef Gustavo", NpcRole.Chef, GetChefPosition(settings), isTutorialActive ? chefMessage : "Chef: keep tickets flowing.")
+            new("Шеф Густаво", NpcRole.Chef, GetChefPosition(settings), isTutorialActive ? chefMessage : "Шеф: держите темп, не останавливайтесь.")
         };
 
         var deskPosition = stations.Single(x => x.Type == StationType.OrderDesk).Position;
@@ -849,33 +849,33 @@ public sealed class GameWorld
         return new[]
         {
             new CustomerProfile(
-                "Alex",
+                "Алекс",
                 new[] { MenuItemType.ClassicBurger, MenuItemType.SpicyBurger },
-                new[] { "One burger and make it quick.", "Night shift fuel, please." },
-                new[] { "This is not what I ordered.", "I asked for complete order." },
-                new[] { "Perfect, thanks.", "That was quick." },
-                new[] { "I cannot wait forever.", "Queue is too long." }),
+                new[] { "Один бургер, только побыстрее.", "Нужна еда для ночной смены." },
+                new[] { "Это не мой заказ.", "Я просил полный набор." },
+                new[] { "Отлично, спасибо.", "Быстро сработали." },
+                new[] { "Я не могу ждать бесконечно.", "Очередь слишком длинная." }),
             new CustomerProfile(
-                "Mia",
+                "Мия",
                 new[] { MenuItemType.SpicyBurger, MenuItemType.ComboMeal },
-                new[] { "Can I get spicy combo vibes?", "Need something hot and loud." },
-                new[] { "Nope, this order is wrong.", "Spice missing. Big miss." },
-                new[] { "Now that is a proper order.", "Good tempo, chef." },
-                new[] { "Timer ran out for me.", "I am leaving hungry." }),
+                new[] { "Можно что-то острое, пожалуйста?", "Хочу поярче, ночь только начинается." },
+                new[] { "Нет, это неверный заказ.", "Остроты нет, это промах." },
+                new[] { "Вот это уже правильно.", "Хороший темп, повар." },
+                new[] { "Мое время вышло.", "Ухожу голодной." }),
             new CustomerProfile(
-                "Victor",
+                "Виктор",
                 new[] { MenuItemType.ComboMeal, MenuItemType.ClassicBurger },
-                new[] { "Combo and drink, please.", "I have five minutes only." },
-                new[] { "Incomplete tray, not good.", "This service slipped." },
-                new[] { "Solid execution.", "Great, I am happy." },
-                new[] { "I am late. Goodbye.", "No time left, I am out." }),
+                new[] { "Комбо и напиток, пожалуйста.", "У меня всего пять минут." },
+                new[] { "Поднос неполный, это плохо.", "Сервис просел." },
+                new[] { "Сделано четко.", "Отлично, доволен." },
+                new[] { "Я опаздываю, пока.", "Времени не осталось, ухожу." }),
             new CustomerProfile(
-                "Nora",
+                "Нора",
                 new[] { MenuItemType.ClassicBurger, MenuItemType.ComboMeal },
-                new[] { "Hi, surprise me with speed.", "I will rate this place tonight." },
-                new[] { "That is a rough mistake.", "I expected better." },
-                new[] { "Five stars for this one.", "Fast and clean service." },
-                new[] { "I am done waiting.", "This queue defeated me." })
+                new[] { "Привет, удивите скоростью.", "Сегодня я оценю это место." },
+                new[] { "Это грубая ошибка.", "Я ожидала лучшего." },
+                new[] { "За это пять звезд.", "Быстро и аккуратно." },
+                new[] { "Я больше не жду.", "Эта очередь меня победила." })
         };
     }
 

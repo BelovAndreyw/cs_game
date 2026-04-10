@@ -43,7 +43,7 @@ public sealed class GameForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
-        Text = "Los Pollos Hermanos: Night Shift";
+        Text = "Los Pollos Hermanos: Ночная смена";
         ClientSize = new Size(1460, 870);
         BackColor = Color.FromArgb(11, 13, 19);
 
@@ -352,12 +352,22 @@ public sealed class GameForm : Form
             }
         }
 
+        using var npcNameFont = new Font("Consolas", 8, FontStyle.Bold);
         foreach (var npc in snapshot.Npcs)
         {
             var cx = (npc.Position.X + 0.5f) * CellSize;
             var cy = (npc.Position.Y + 0.5f) * CellSize;
             using var body = new SolidBrush(npc.Role == NpcRole.Chef ? Color.FromArgb(255, 218, 126) : Color.FromArgb(166, 206, 255));
             g.FillEllipse(body, cx - 10, cy - 12, 20, 20);
+
+            using var nameBrush = new SolidBrush(Color.FromArgb(236, 243, 255));
+            using var nameShadow = new SolidBrush(Color.FromArgb(110, 0, 0, 0));
+            var name = npc.Name;
+            var nameSize = g.MeasureString(name, npcNameFont);
+            var nameX = cx - nameSize.Width / 2f;
+            var nameY = cy - 27f;
+            g.DrawString(name, npcNameFont, nameShadow, nameX + 1f, nameY + 1f);
+            g.DrawString(name, npcNameFont, nameBrush, nameX, nameY);
         }
 
         DrawPulses(g);
@@ -410,32 +420,32 @@ public sealed class GameForm : Form
     {
         if (!snapshot.IsShiftRunning)
         {
-            return (null, "Press Enter to start");
+            return (null, "Нажмите Enter, чтобы начать");
         }
 
         if (snapshot.IsTutorialPhase)
         {
-            return (snapshot.TutorialTargetStation, $"Tutorial {snapshot.TutorialSecondsLeft}s: {snapshot.ChefMessage}");
+            return (snapshot.TutorialTargetStation, $"Обучение ({snapshot.TutorialSecondsLeft}с): {snapshot.ChefMessage}");
         }
 
         if (snapshot.CurrentOrderName is null)
         {
-            return (null, "Wait for next customer");
+            return (null, "Ожидание следующего клиента");
         }
 
         if (!snapshot.IsCurrentOrderAccepted)
         {
-            return (StationType.OrderDesk, "Accept order at desk");
+            return (StationType.OrderDesk, "Примите заказ на стойке");
         }
 
         var completed = snapshot.CompletedStations.ToHashSet();
         var next = snapshot.RequiredStations.FirstOrDefault(s => !completed.Contains(s));
         if (next != default)
         {
-            return (next, $"Complete {RecipeBook.GetStationName(next)}");
+            return (next, $"Выполните этап: {RecipeBook.GetStationName(next)}");
         }
 
-        return (StationType.ServingCounter, "Serve at counter");
+        return (StationType.ServingCounter, "Выдайте заказ на стойке выдачи");
     }
 
     private void DrawHud(Graphics g, GameSnapshot snapshot, Rectangle hudRect, string objectiveText)
@@ -451,31 +461,31 @@ public sealed class GameForm : Form
         var y = hudRect.Y + 14;
         g.DrawString("Los Pollos Hermanos", titleFont, accent, x, y);
         y += 24;
-        g.DrawString($"Time: {FormatTime(snapshot.TimeRemainingSeconds)}", textFont, text, x, y);
+        g.DrawString($"Время: {FormatTime(snapshot.TimeRemainingSeconds)}", textFont, text, x, y);
         y += 18;
-        g.DrawString($"Difficulty: {snapshot.Difficulty}", textFont, text, x, y);
+        g.DrawString($"Сложность: {FormatDifficulty(snapshot.Difficulty)}", textFont, text, x, y);
         y += 18;
-        g.DrawString($"Score: {snapshot.Score}  Rating: {snapshot.Rating}", textFont, text, x, y);
+        g.DrawString($"Очки: {snapshot.Score}  Рейтинг: {snapshot.Rating}", textFont, text, x, y);
         y += 18;
-        g.DrawString($"Mistakes: {snapshot.Mistakes}  Served: {snapshot.ServedOrders}", textFont, text, x, y);
+        g.DrawString($"Ошибки: {snapshot.Mistakes}  Выполнено: {snapshot.ServedOrders}", textFont, text, x, y);
         y += 22;
-        g.DrawString("Objective:", textFont, accent, x, y);
+        g.DrawString("Цель:", textFont, accent, x, y);
         y += 16;
         g.DrawString(Wrap(objectiveText, 36), textFont, text, x, y);
         y += 32;
-        g.DrawString($"Customer: {snapshot.CurrentCustomerName ?? "-"}", textFont, text, x, y);
+        g.DrawString($"Клиент: {snapshot.CurrentCustomerName ?? "-"}", textFont, text, x, y);
         y += 16;
-        g.DrawString($"Order: {snapshot.CurrentOrderName ?? "-"}", textFont, text, x, y);
+        g.DrawString($"Заказ: {snapshot.CurrentOrderName ?? "-"}", textFont, text, x, y);
         y += 16;
-        g.DrawString($"Patience: {snapshot.CustomerPatienceSecondsLeft}", textFont, text, x, y);
+        g.DrawString($"Терпение: {snapshot.CustomerPatienceSecondsLeft}", textFont, text, x, y);
         y += 16;
         if (snapshot.WaitingCustomerNames.Count > 0)
         {
-            g.DrawString($"Queue: {string.Join(", ", snapshot.WaitingCustomerNames)}", textFont, text, x, y);
+            g.DrawString($"Очередь: {string.Join(", ", snapshot.WaitingCustomerNames)}", textFont, text, x, y);
             y += 16;
         }
 
-        g.DrawString($"Interaction: {snapshot.InteractionMode}", textFont, accent, x, y);
+        g.DrawString($"Действие: {FormatInteractionMode(snapshot.InteractionMode)}", textFont, accent, x, y);
         y += 16;
         if (!string.IsNullOrWhiteSpace(snapshot.InteractionHint))
         {
@@ -483,7 +493,7 @@ public sealed class GameForm : Form
             y += 30;
         }
 
-        g.DrawString("Status:", textFont, accent, x, y);
+        g.DrawString("Статус:", textFont, accent, x, y);
         y += 16;
         g.DrawString(Wrap(snapshot.StatusMessage, 36), textFont, text, x, y);
     }
@@ -501,15 +511,15 @@ public sealed class GameForm : Form
         if (!snapshot.IsShiftStarted && !snapshot.IsGameOver)
         {
             DrawCentered(g, "Los Pollos Hermanos", titleFont, brush, cx, y);
-            DrawCentered(g, "Press ENTER to start", textFont, brush, cx, y + 58f);
-            DrawCentered(g, "WASD/arrows move | hold/tap E to interact", textFont, brush, cx, y + 95f);
+            DrawCentered(g, "Нажмите ENTER, чтобы начать", textFont, brush, cx, y + 58f);
+            DrawCentered(g, "WASD/стрелки - движение | E - удержание/серия нажатий", textFont, brush, cx, y + 95f);
         }
         else if (snapshot.IsGameOver)
         {
-            var title = snapshot.Outcome == ShiftOutcome.Victory ? "Shift Closed" : "You Were Fired";
+            var title = snapshot.Outcome == ShiftOutcome.Victory ? "Смена завершена" : "Вас уволили";
             DrawCentered(g, title, titleFont, brush, cx, y);
-            DrawCentered(g, $"Score: {snapshot.Score} | Served: {snapshot.ServedOrders}", textFont, brush, cx, y + 58f);
-            DrawCentered(g, "Press ENTER to restart", textFont, brush, cx, y + 95f);
+            DrawCentered(g, $"Очки: {snapshot.Score} | Выполнено: {snapshot.ServedOrders}", textFont, brush, cx, y + 58f);
+            DrawCentered(g, "Нажмите ENTER для новой смены", textFont, brush, cx, y + 95f);
         }
     }
 
@@ -544,6 +554,28 @@ public sealed class GameForm : Form
             StationType.Drinks => Color.FromArgb(158, 185, 243),
             StationType.ServingCounter => Color.FromArgb(168, 230, 161),
             _ => Color.FromArgb(180, 180, 180)
+        };
+    }
+
+    private static string FormatDifficulty(ShiftDifficulty difficulty)
+    {
+        return difficulty switch
+        {
+            ShiftDifficulty.Easy => "Легкая",
+            ShiftDifficulty.Medium => "Средняя",
+            ShiftDifficulty.Hard => "Сложная",
+            _ => "Неизвестно"
+        };
+    }
+
+    private static string FormatInteractionMode(StationInteractionMode mode)
+    {
+        return mode switch
+        {
+            StationInteractionMode.None => "Нет",
+            StationInteractionMode.Hold => "Удержание",
+            StationInteractionMode.RapidTap => "Серия нажатий",
+            _ => "Неизвестно"
         };
     }
 
