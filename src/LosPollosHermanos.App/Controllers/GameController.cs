@@ -33,6 +33,11 @@ public sealed class GameController
         world.Tick();
     }
 
+    public void UpdateRealtime(float deltaSeconds)
+    {
+        world.UpdateRealtime(deltaSeconds);
+    }
+
     public void Move(Direction direction)
     {
         world.MovePlayer(direction);
@@ -41,5 +46,15 @@ public sealed class GameController
     public void Interact()
     {
         world.Interact();
+    }
+
+    public void BeginInteraction()
+    {
+        world.BeginInteraction();
+    }
+
+    public void EndInteraction()
+    {
+        world.EndInteraction();
     }
 }

@@ -21,6 +21,7 @@
 - unit-тесты на ключевые правила модели
 
 Подробно: [docs/week-1-2-progress.md](docs/week-1-2-progress.md)
+Неделя 3: [docs/week-3-progress.md](docs/week-3-progress.md)
 
 ## Ближайшие 2 недели
 

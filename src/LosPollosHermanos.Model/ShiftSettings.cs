@@ -2,13 +2,21 @@ namespace LosPollosHermanos.Model;
 
 public sealed class ShiftSettings
 {
-    public int MapWidth { get; init; } = 34;
+    public int MapWidth { get; init; } = 42;
 
-    public int MapHeight { get; init; } = 22;
+    public int MapHeight { get; init; } = 24;
 
-    public int ShiftDurationSeconds { get; init; } = 240;
+    public int KitchenStartRow { get; init; } = 12;
+
+    public int ShiftDurationSeconds { get; init; } = 300;
+
+    public int ChefTutorialSeconds { get; init; } = 30;
 
     public int CustomerPatienceSeconds { get; init; } = 55;
+
+    public int EasyPatienceBonusSeconds { get; init; } = 14;
+
+    public int HardPatiencePenaltySeconds { get; init; } = 14;
 
     public int MaxMistakes { get; init; } = 4;
 
@@ -23,4 +31,8 @@ public sealed class ShiftSettings
     public int TimeoutPenalty { get; init; } = 15;
 
     public int SuccessfulServeRatingBonus { get; init; } = 4;
+
+    public float MediumPenaltyMultiplier { get; init; } = 1.2f;
+
+    public float HardPenaltyMultiplier { get; init; } = 1.45f;
 }
