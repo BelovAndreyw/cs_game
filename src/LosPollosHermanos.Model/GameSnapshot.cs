@@ -20,11 +20,17 @@ public sealed class GameSnapshot
 
     public IReadOnlyList<StationSnapshot> Stations { get; init; } = Array.Empty<StationSnapshot>();
 
+    public IReadOnlyList<ScenePropSnapshot> SceneProps { get; init; } = Array.Empty<ScenePropSnapshot>();
+
+    public IReadOnlyList<GridPosition> BlockedTiles { get; init; } = Array.Empty<GridPosition>();
+
     public int Score { get; init; }
 
     public int Rating { get; init; }
 
     public int Mistakes { get; init; }
+
+    public int MaxMistakes { get; init; }
 
     public int ServedOrders { get; init; }
 
@@ -33,6 +39,8 @@ public sealed class GameSnapshot
     public int ShiftDurationSeconds { get; init; }
 
     public int CustomerPatienceSecondsLeft { get; init; }
+
+    public int CustomerPatienceMaxSeconds { get; init; }
 
     public ShiftDifficulty Difficulty { get; init; }
 
@@ -45,6 +53,10 @@ public sealed class GameSnapshot
     public StationType? TutorialTargetStation { get; init; }
 
     public string StatusMessage { get; init; } = string.Empty;
+
+    public MenuItemType? CurrentOrderItem { get; init; }
+
+    public IReadOnlyList<MenuItemType> CurrentOrderItems { get; init; } = Array.Empty<MenuItemType>();
 
     public string? CurrentOrderName { get; init; }
 
@@ -79,4 +91,6 @@ public sealed class GameSnapshot
     public float InteractionWindowSecondsLeft { get; init; }
 
     public IReadOnlyList<NpcSnapshot> Npcs { get; init; } = Array.Empty<NpcSnapshot>();
+
+    public StationMiniGameSnapshot MiniGame { get; init; } = StationMiniGameSnapshot.None;
 }

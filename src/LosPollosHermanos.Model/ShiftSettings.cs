@@ -2,11 +2,11 @@ namespace LosPollosHermanos.Model;
 
 public sealed class ShiftSettings
 {
-    public int MapWidth { get; init; } = 42;
+    public int MapWidth { get; init; } = 34;
 
-    public int MapHeight { get; init; } = 24;
+    public int MapHeight { get; init; } = 22;
 
-    public int KitchenStartRow { get; init; } = 12;
+    public int KitchenStartRow { get; init; } = 10;
 
     public int ShiftDurationSeconds { get; init; } = 300;
 

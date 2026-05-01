@@ -57,4 +57,24 @@ public sealed class GameController
     {
         world.EndInteraction();
     }
+
+    public void BeginMiniGameAction()
+    {
+        world.BeginMiniGameAction();
+    }
+
+    public void EndMiniGameAction()
+    {
+        world.EndMiniGameAction();
+    }
+
+    public void SubmitMiniGameAction()
+    {
+        world.SubmitMiniGameAction();
+    }
+
+    public void MoveMiniGame(Direction direction)
+    {
+        world.MoveMiniGame(direction);
+    }
 }
